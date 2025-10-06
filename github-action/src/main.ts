@@ -60,7 +60,6 @@ export async function runMain(): Promise<void> {
 		}
 		const devContainerCliInstalled = await devcontainer.isCliInstalled(exec);
 		if (!devContainerCliInstalled) {
-			core.info('Installing @devcontainers/cli...');
 			const success = await devcontainer.installCli(exec);
 			if (!success) {
 				core.setFailed('@devcontainers/cli install failed!');
@@ -82,7 +81,7 @@ export async function runMain(): Promise<void> {
 		const log = (message: string): void => core.info(message);
 		const workspaceFolder = path.resolve(checkoutPath, subFolder);
 		const configFile = relativeConfigFile && path.resolve(checkoutPath, relativeConfigFile);
-		const output = 'oci:/tmp/output.tar';
+		const output = 'type=oci,dest=/tmp/output.tar';
 		const tagsInput = core.getMultilineInput('tags');
 		const platforms = core.getMultilineInput('platform');
 		const push = core.getBooleanInput('push');
