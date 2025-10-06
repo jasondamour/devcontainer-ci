@@ -157,8 +157,8 @@ export interface DevContainerCliBuildResult
 export interface DevContainerCliBuildArgs {
   workspaceFolder: string;
   configFile: string | undefined;
-  imageName?: string[];
-  platform?: string;
+  imageNames?: string[];
+  platforms?: string[];
   additionalCacheFroms?: string[];
   userDataFolder?: string;
   output?: string,
@@ -177,13 +177,15 @@ async function devContainerBuild(
   if (args.configFile) {
     commandArgs.push('--config', args.configFile);
   }
-  if (args.imageName) {
-    args.imageName.forEach(iName =>
+  if (args.imageNames) {
+    args.imageNames.forEach(iName =>
       commandArgs.push('--image-name', iName),
     );
   }
-  if (args.platform) {
-    commandArgs.push('--platform', args.platform.split(/\s*,\s*/).join(','));
+  if (args.platforms) {
+    args.platforms.forEach(platform =>
+      commandArgs.push('--platform', platform),
+    );
   }
   if (args.output) {
     commandArgs.push('--output', args.output);

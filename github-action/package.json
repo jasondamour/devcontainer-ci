@@ -35,6 +35,7 @@
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.13",
+    "@types/truncate-utf8-bytes": "^1.0.2",
     "@typescript-eslint/eslint-plugin": "^8.37.0",
     "@typescript-eslint/parser": "^8.31.0",
     "@vercel/ncc": "^0.38.3",
@@ -46,7 +47,6 @@
     "js-yaml": "^4.1.0",
     "prettier": "^3.6.2",
     "ts-jest": "^29.4.0",
-    "typescript": "^5.8.3",
-    "@types/truncate-utf8-bytes": "^1.0.2"
+    "typescript": "^5.8.3"
   }
 }

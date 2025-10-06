@@ -5,24 +5,19 @@ branding:
   color: purple
   icon: box
 inputs:
-  imageName:
-    required: false
-    description: Image name (including registry)
-  imageTag:
-    required: false
-    description: One or more comma-separated image tags (defaults to latest)
-  images:
-    required: false
-    description: List of Docker images to use as base name for tags. Takes precedence over imageName if both are provided.
   tags:
+    required: true
+    description: List of image tags
+  labels:
     required: false
-    description: List of tags. Takes precedence over imageTag if both are provided. Can accept output from docker/metadata-action.
+    description: List of labels
   platform:
     required: false
-    description: Platforms for which the image should be built. If omitted, defaults to the platform of the GitHub Actions Runner. Multiple platforms should be comma separated.
-  runCmd:
+    description: Platforms for which the image should be built. If omitted, defaults to the platform of the GitHub Actions Runner
+  multiRunnerBuild:
     required: false
-    description: Specify the command to run after building the dev container image. Can be omitted to skip starting the container.
+    default: false
+    description: Whether the action should append the platform to image tags and output image digests for each platform
   subFolder:
     required: false
     description: Specify a child folder (containing a .devcontainer) instead of using the repository root
@@ -37,23 +32,8 @@ inputs:
     default: .
   push:
     required: false
-    default: filter
-    description: Control when images are pushed. Options are never, filter, always. For filter (default), images are pushed if the refFilterForPush and eventFilterForPush conditions are met
-  refFilterForPush:
-    required: false
-    default: ""
-    description: Set the source branches (e.g. refs/heads/main) that are allowed to trigger a push of the dev container image. Leave empty to allow all.
-  eventFilterForPush:
-    required: false
-    default: push
-    description: Set the event names (e.g. pull_request, push) that are allowed to trigger a push of the dev container image. Defaults to push. Leave empty for all
-  env:
-    required: false
-    description: Specify environment variables to pass to the docker run command
-  inheritEnv:
-    required: false
-    default: "false"
-    description: Inherit all environment variables of the runner CI machine.
+    default: false
+    description: Control if images are pushed
   skipContainerUserIdUpdate:
     required: false
     default: "false"
@@ -71,16 +51,9 @@ inputs:
   cacheTo:
     required: false
     description: Specify the image to cache the built image to
-  mounts:
-    required: false
-    description: List of additional mounts to be added to the dev container
 outputs:
-  runCmdOutput:
-    description: The output of the command specified in the runCmd input
   imageDigests:
-    description: The SHA256 digests of the built images. JSON object with platform keys and digest values.
+    description: The SHA256 digests of the built images
 runs:
   using: 'node20'
   main: 'github-action/run-main.js'
-  post: 'github-action/run-post.js'
-  post-if: 'success()'

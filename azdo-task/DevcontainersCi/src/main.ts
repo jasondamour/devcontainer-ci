@@ -97,8 +97,8 @@ export async function runMain(): Promise<void> {
 		const buildArgs: DevContainerCliBuildArgs = {
 			workspaceFolder,
 			configFile,
-			imageName: fullImageNameArray,
-			platform,
+			imageNames: fullImageNameArray,
+			platforms: platform,
 			additionalCacheFroms: cacheFrom,
 			output: buildxOutput,
 			noCache,
