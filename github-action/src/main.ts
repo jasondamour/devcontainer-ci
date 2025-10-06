@@ -81,7 +81,8 @@ export async function runMain(): Promise<void> {
 		const log = (message: string): void => core.info(message);
 		const workspaceFolder = path.resolve(checkoutPath, subFolder);
 		const configFile = relativeConfigFile && path.resolve(checkoutPath, relativeConfigFile);
-		const output = 'type=oci,dest=/tmp/output.tar';
+		const outputPath = '/tmp/output.tar';
+		const output = `type=oci,dest=${outputPath}`;
 		const tagsInput = core.getMultilineInput('tags');
 		const platforms = core.getMultilineInput('platform');
 		const push = core.getBooleanInput('push');
@@ -138,14 +139,12 @@ export async function runMain(): Promise<void> {
 
 		// Push the image
 		if (push) {
-			await core.group('📌 push image', async () => {
-				for (const tag of tags) {
-					core.info(`Pushing image '${tag}'...`);
-					const dest = `docker://${tag}`;
-					await copyImage(true, output, dest);
-				}
-				core.info('Images pushed successfully');
-			});
+			for (const tag of tags) {
+				core.info(`Pushing image '${tag}'...`);
+				const dest = `docker://${tag}`;
+				await copyImage(true, outputPath, dest);
+			}
+			core.info('Images pushed successfully');
 		} else {
 			core.info('Images not pushed');
 			return;
