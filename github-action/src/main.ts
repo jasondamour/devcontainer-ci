@@ -99,7 +99,7 @@ export async function runMain(): Promise<void> {
 				imageData.push({
 					tag: tag,
 					platform: platform,
-					tagWithPlatform: `${tag}-${platform}`
+					tagWithPlatform: `${tag}-${platform.replace(/\//g, '-')}`
 				});
 			});
 		});
