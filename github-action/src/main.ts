@@ -139,10 +139,10 @@ export async function runMain(): Promise<void> {
 
 		// Push the image
 		if (push) {
+			const src = `oci-archive:${outputPath}`;
 			for (const tag of tags) {
-				core.info(`Pushing image '${tag}'...`);
 				const dest = `docker://${tag}`;
-				await copyImage(true, outputPath, dest);
+				await copyImage(true, src, dest);
 			}
 			core.info('Images pushed successfully');
 		} else {
