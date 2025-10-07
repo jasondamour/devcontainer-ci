@@ -26,20 +26,28 @@ async function getImageDigest(imageName: string): Promise<string | null> {
 		const inspectCmd = await exec(
 			'docker',
 			['buildx', 'imagetools', 'inspect', '--raw', imageName],
-			{silent: false}
+			{silent: true}
 		);
-		console.log(`inspectCmd: ${inspectCmd.stdout}`);
-		console.log(`inspectCmd: ${inspectCmd.stderr}`);
 		if (inspectCmd.exitCode === 0) {
 			const output = JSON.parse(inspectCmd.stdout.trim());
+			// for simple images
 			if (output.digest) {
 				return output.digest;
 			}
+			// For manifests (i.e. for attestation)
+			else if (output.manifests) {
+				const manifest = output.manifests.find(
+					(m: any) => m.mediaType === 'application/vnd.oci.image.manifest.v1+json'
+				);
+				if (manifest?.digest) {
+					return manifest.digest;
+				}
+			}
 		}
 	} catch (error) {
-		core.warning(`Failed to get registry image digest for ${imageName}: ${error}`);
+		core.error(`Failed to get registry image digest for ${imageName}: ${error}`);
 	}
-	return null;
+	throw new Error(`Failed to get registry image digest for ${imageName}`);
 }
 
 export async function runMain(): Promise<void> {
@@ -129,19 +137,10 @@ export async function runMain(): Promise<void> {
 
 		// Output the digests as a JSON
 		if (pushByDigest) {
-			const digestsObj: Record<string, Record<string, string>> = {};
-			for (const tag of tags) {
-				const digest = await getImageDigest(tag);
-				if (digest !== null) {
-					digestsObj[tag] = {
-						[platforms[0]]: digest
-					};
-				}
-			}
-			if (Object.keys(digestsObj).length > 0) {
-				const digestsJson = JSON.stringify(digestsObj);
-				core.info(`Image digests: ${digestsJson}`);
-				core.setOutput('imageDigests', digestsJson);
+			const digest = await getImageDigest(tags[0]);
+			if (digest !== null) {
+				core.info(`Image digests: ${digest}`);
+				core.setOutput('imageDigests', digest);
 			}
 		}
 		
