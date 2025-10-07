@@ -89,6 +89,8 @@ export async function runMain(): Promise<void> {
 		const platforms = core.getMultilineInput('platform');
 		const push = core.getBooleanInput('push');
 
+		const output = 'type=docker,rewrite-timestamp=true';
+
 		const tags: string[] = [];
 		if (push && platforms.length === 1) {
 			const platformSlug = platforms[0].replace(/\//g, '-');
@@ -111,6 +113,7 @@ export async function runMain(): Promise<void> {
 				noCache: noCache,
 				cacheTo: cacheTo,
 				push: push,
+				output: output,
 			};
 			const result = await devcontainer.build(args, log);
 
