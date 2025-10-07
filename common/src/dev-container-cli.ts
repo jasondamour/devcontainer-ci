@@ -164,6 +164,7 @@ export interface DevContainerCliBuildArgs {
   output?: string,
   noCache?: boolean,
   cacheTo?: string[],
+  push?: boolean,
 }
 async function devContainerBuild(
   args: DevContainerCliBuildArgs,
@@ -189,6 +190,9 @@ async function devContainerBuild(
   }
   if (args.output) {
     commandArgs.push('--output', args.output);
+  }
+  if (args.push) {
+    commandArgs.push('--push');
   }
   if (args.userDataFolder) {
     commandArgs.push("--user-data-folder", args.userDataFolder);

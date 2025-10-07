@@ -81,32 +81,11 @@ export async function runMain(): Promise<void> {
 		const log = (message: string): void => core.info(message);
 		const workspaceFolder = path.resolve(checkoutPath, subFolder);
 		const configFile = relativeConfigFile && path.resolve(checkoutPath, relativeConfigFile);
-		const outputPath = '/tmp/output.tar';
-		const output = `type=oci,dest=${outputPath}`;
-		const tagsInput = core.getMultilineInput('tags');
+		const tags = core.getMultilineInput('tags');
 		const platforms = core.getMultilineInput('platform');
 		const push = core.getBooleanInput('push');
-
-		const multiRunnerBuild = core.getBooleanInput('multiRunnerBuild');
-		if (multiRunnerBuild && platforms.length !== 1) {
-			core.setFailed('if multiRunnerBuild is true, one platform must be specified');
-			return;
-		} 
-		
-		const imageData: {tag: string, platform: string, tagWithPlatform: string}[] = [];
-		tagsInput.forEach(tag => { 
-			platforms.forEach(platform => {
-				imageData.push({
-					tag: tag,
-					platform: platform,
-					tagWithPlatform: `${tag}-${platform.replace(/\//g, '-')}`
-				});
-			});
-		});
-		
-		const tags = multiRunnerBuild ?
-			imageData.flatMap(image => image.tagWithPlatform) :
-			tagsInput;
+		const pushByDigest = core.getBooleanInput('pushByDigest');
+		const output = `type=image,push-by-digest=${pushByDigest},name-canonical=true,push=${push}`;
 
 		
 		// Build the image
@@ -121,6 +100,7 @@ export async function runMain(): Promise<void> {
 				noCache: noCache,
 				cacheTo: cacheTo,
 				output: output,
+				push: push,
 			};
 			const result = await devcontainer.build(args, log);
 
@@ -137,35 +117,20 @@ export async function runMain(): Promise<void> {
 			return;
 		}
 
-		// Push the image
-		if (push) {
-			const src = `oci-archive:${outputPath}`;
-			for (const tag of tags) {
-				const dest = `docker://${tag}`;
-				await copyImage(true, src, dest);
-			}
-			core.info('Images pushed successfully');
-		} else {
-			core.info('Images not pushed');
-			return;
-		}
-
 		// Output the digests as a JSON
-		if (multiRunnerBuild) {
-			const digestsObj: Record<string, Record<string, string>> = {};
-			await Promise.all(imageData.map(async image => {
-				const digest = await getImageDigest(image.tagWithPlatform);
-				if (digest !== null) {
-					digestsObj[image.tag] = {
-						[image.platform]: digest
-					};
-				}
-			}));
-			if (Object.keys(digestsObj).length > 0) {
-				const digestsJson = JSON.stringify(digestsObj);
-				core.info(`Image digests: ${digestsJson}`);
-				core.setOutput('imageDigests', digestsJson);
+		const digestsObj: Record<string, Record<string, string>> = {};
+		for (const tag of tags) {
+			const digest = await getImageDigest(tag);
+			if (digest !== null) {
+				digestsObj[tag] = {
+					[platforms[0]]: digest
+				};
 			}
+		}
+		if (Object.keys(digestsObj).length > 0) {
+			const digestsJson = JSON.stringify(digestsObj);
+			core.info(`Image digests: ${digestsJson}`);
+			core.setOutput('imageDigests', digestsJson);
 		}
 		
 	} catch (error) {
