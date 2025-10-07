@@ -16,13 +16,14 @@ export interface DevContainerCliBuildResult extends DevContainerCliSuccessResult
 export interface DevContainerCliBuildArgs {
     workspaceFolder: string;
     configFile: string | undefined;
-    imageName?: string[];
-    platform?: string;
+    imageNames?: string[];
+    platforms?: string[];
     additionalCacheFroms?: string[];
     userDataFolder?: string;
     output?: string;
     noCache?: boolean;
     cacheTo?: string[];
+    push?: boolean;
 }
 declare function devContainerBuild(args: DevContainerCliBuildArgs, log: (data: string) => void): Promise<DevContainerCliBuildResult | DevContainerCliError>;
 export interface DevContainerCliUpResult extends DevContainerCliSuccessResult {
