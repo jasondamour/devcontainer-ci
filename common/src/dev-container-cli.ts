@@ -127,8 +127,11 @@ async function runSpecCliJsonCommand<T>(options: {
   console.log(`About to run ${command} ${options.args.join(' ')}`); // TODO - take an output arg to allow GH to use core.info
   await spawn(command, options.args, spawnOptions);
 
+  console.log(`stdout: ${stdout}`);
+  console.log(`parsed: ${parseCliOutput<T>(stdout)}`);
   return parseCliOutput<T>(stdout);
 }
+
 async function runSpecCliNonJsonCommand(options: {
   args: string[];
   log: (data: string) => void;
@@ -154,6 +157,7 @@ export interface DevContainerCliBuildResult
   extends DevContainerCliSuccessResult {
     imageDigests?: Record<string, string>;
 }
+
 export interface DevContainerCliBuildArgs {
   workspaceFolder: string;
   configFile: string | undefined;
@@ -166,6 +170,7 @@ export interface DevContainerCliBuildArgs {
   cacheTo?: string[],
   push?: boolean,
 }
+
 async function devContainerBuild(
   args: DevContainerCliBuildArgs,
   log: (data: string) => void,
@@ -221,6 +226,7 @@ export interface DevContainerCliUpResult extends DevContainerCliSuccessResult {
   remoteUser: string;
   remoteWorkspaceFolder: string;
 }
+
 export interface DevContainerCliUpArgs {
   workspaceFolder: string;
   configFile: string | undefined;
