@@ -21,13 +21,15 @@ function emptyStringAsUndefined(value: string): string | undefined {
 // Helper function to get image digest from registry
 // Does not work for manifests
 async function getImageDigest(imageName: string): Promise<string | null> {
+	console.log(`Getting image digest for ${imageName}`);
 	try {
 		const inspectCmd = await exec(
 			'docker',
 			['buildx', 'imagetools', 'inspect', '--raw', imageName],
-			{silent: true}
+			{silent: false}
 		);
-		
+		console.log(`inspectCmd: ${inspectCmd.stdout}`);
+		console.log(`inspectCmd: ${inspectCmd.stderr}`);
 		if (inspectCmd.exitCode === 0) {
 			const output = JSON.parse(inspectCmd.stdout.trim());
 			if (output.digest) {
@@ -130,8 +132,6 @@ export async function runMain(): Promise<void> {
 			const digestsObj: Record<string, Record<string, string>> = {};
 			for (const tag of tags) {
 				const digest = await getImageDigest(tag);
-				console.log(`tag: ${tag}`);
-				console.log(`digest: ${digest}`);
 				if (digest !== null) {
 					digestsObj[tag] = {
 						[platforms[0]]: digest
