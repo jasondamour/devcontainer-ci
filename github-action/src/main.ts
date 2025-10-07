@@ -129,7 +129,7 @@ export async function runMain(): Promise<void> {
 	
 			const inspectCmd = await exec(
 				'docker',
-				['image', 'inspect', '--digests', '--format', '{{.RepoDigests}}', tags[0]],
+				['image', 'inspect', tags[0]],
 				{silent: true}
 			);
 			console.log(`tags: ${tags}`);

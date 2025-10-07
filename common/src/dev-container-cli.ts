@@ -126,9 +126,6 @@ async function runSpecCliJsonCommand<T>(options: {
   const command = await findWindowsExecutable(getSpecCliInfo().command);
   console.log(`About to run ${command} ${options.args.join(' ')}`); // TODO - take an output arg to allow GH to use core.info
   await spawn(command, options.args, spawnOptions);
-
-  console.log(`stdout: ${stdout}`);
-  console.log(`parsed: ${parseCliOutput<T>(stdout)}`);
   return parseCliOutput<T>(stdout);
 }
 
