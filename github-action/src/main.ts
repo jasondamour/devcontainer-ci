@@ -89,8 +89,9 @@ export async function runMain(): Promise<void> {
 
 		const tags: string[] = [];
 		if (pushByDigest && platforms.length === 1) {
+			const platformSlug = platforms[0].replace(/\//g, '-');
 			tagsInput.forEach(tag => {
-				tags.push(`${tag}-${platforms[0]}`);
+				tags.push(`${tag}-${platformSlug}`);
 			});
 		} else {
 			tags.push(...tagsInput);
