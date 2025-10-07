@@ -118,19 +118,38 @@ export async function runMain(): Promise<void> {
 		}
 
 		// Output the digests as a JSON
-		const digestsObj: Record<string, Record<string, string>> = {};
-		for (const tag of tags) {
-			const digest = await getImageDigest(tag);
-			if (digest !== null) {
-				digestsObj[tag] = {
-					[platforms[0]]: digest
-				};
+		if (pushByDigest) {
+			const listCmd = await exec(
+				'docker',
+				['image', 'list', '--digests'],
+				{silent: true}
+			);
+			console.log(`listCmd: ${listCmd.stdout}`);
+			console.log(`listCmd: ${listCmd.stderr}`);
+	
+			const inspectCmd = await exec(
+				'docker',
+				['image', 'inspect', '--digests', '--format', '{{.RepoDigests}}', tags[0]],
+				{silent: true}
+			);
+			console.log(`tags: ${tags}`);
+			console.log(`inspectCmd: ${inspectCmd.stdout}`);
+			console.log(`inspectCmd: ${inspectCmd.stderr}`);
+
+			const digestsObj: Record<string, Record<string, string>> = {};
+			for (const tag of tags) {
+				const digest = await getImageDigest(tag);
+				if (digest !== null) {
+					digestsObj[tag] = {
+						[platforms[0]]: digest
+					};
+				}
 			}
-		}
-		if (Object.keys(digestsObj).length > 0) {
-			const digestsJson = JSON.stringify(digestsObj);
-			core.info(`Image digests: ${digestsJson}`);
-			core.setOutput('imageDigests', digestsJson);
+			if (Object.keys(digestsObj).length > 0) {
+				const digestsJson = JSON.stringify(digestsObj);
+				core.info(`Image digests: ${digestsJson}`);
+				core.setOutput('imageDigests', digestsJson);
+			}
 		}
 		
 	} catch (error) {
