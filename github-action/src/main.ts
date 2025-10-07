@@ -5,7 +5,6 @@ import {
 	devcontainer,
 	DevContainerCliBuildArgs,
 } from '../../common/src/dev-container-cli';
-import {isSkopeoInstalled, copyImage} from './skopeo';
 
 import {isDockerBuildXInstalled} from './docker';
 
@@ -63,11 +62,6 @@ export async function runMain(): Promise<void> {
 			);
 			return;
 		}
-		const skopeoInstalled = await isSkopeoInstalled();
-		if (!skopeoInstalled) {
-			core.setFailed('skopeo not available: add a step to set up with skopeo/install-action - see https://github.com/devcontainers/ci/blob/main/docs/github-action.md');
-			return;
-		}
 		const devContainerCliInstalled = await devcontainer.isCliInstalled(exec);
 		if (!devContainerCliInstalled) {
 			const success = await devcontainer.installCli(exec);
@@ -94,11 +88,9 @@ export async function runMain(): Promise<void> {
 		const tagsInput = core.getMultilineInput('tags');
 		const platforms = core.getMultilineInput('platform');
 		const push = core.getBooleanInput('push');
-		const pushByDigest = core.getBooleanInput('pushByDigest');
-		// const output = `type=image,push-by-digest=true,name-canonical=true,push=true`;
 
 		const tags: string[] = [];
-		if (pushByDigest && platforms.length === 1) {
+		if (push && platforms.length === 1) {
 			const platformSlug = platforms[0].replace(/\//g, '-');
 			tagsInput.forEach(tag => {
 				tags.push(`${tag}-${platformSlug}`);
@@ -136,11 +128,11 @@ export async function runMain(): Promise<void> {
 		}
 
 		// Output the digests as a JSON
-		if (pushByDigest) {
+		if (push && platforms.length === 1) {
 			const digest = await getImageDigest(tags[0]);
 			if (digest !== null) {
-				core.info(`Image digests: ${digest}`);
-				core.setOutput('imageDigests', digest);
+				core.info(`Image digest: ${digest}`);
+				core.setOutput('digest', digest);
 			}
 		}
 		
