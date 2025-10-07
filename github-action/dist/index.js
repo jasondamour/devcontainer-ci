@@ -2192,11 +2192,20 @@ function runMain() {
             const log = (message) => core.info(message);
             const workspaceFolder = path_1.default.resolve(checkoutPath, subFolder);
             const configFile = relativeConfigFile && path_1.default.resolve(checkoutPath, relativeConfigFile);
-            const tags = core.getMultilineInput('tags');
+            const tagsInput = core.getMultilineInput('tags');
             const platforms = core.getMultilineInput('platform');
             const push = core.getBooleanInput('push');
             const pushByDigest = core.getBooleanInput('pushByDigest');
-            const output = `type=image,push-by-digest=true,name-canonical=true,push=true`;
+            // const output = `type=image,push-by-digest=true,name-canonical=true,push=true`;
+            const tags = [];
+            if (pushByDigest && platforms.length === 1) {
+                tagsInput.forEach(tag => {
+                    tags.push(`${tag}-${platforms[0]}`);
+                });
+            }
+            else {
+                tags.push(...tagsInput);
+            }
             // Build the image
             const buildResult = yield core.group('🏗️ build image', () => __awaiter(this, void 0, void 0, function* () {
                 const args = {
@@ -2208,8 +2217,7 @@ function runMain() {
                     userDataFolder: userDataFolder,
                     noCache: noCache,
                     cacheTo: cacheTo,
-                    push: !pushByDigest ? push : undefined,
-                    output: pushByDigest ? output : undefined,
+                    push: push,
                 };
                 const result = yield dev_container_cli_1.devcontainer.build(args, log);
                 if (result.outcome !== 'success') {
@@ -2223,16 +2231,11 @@ function runMain() {
             }
             // Output the digests as a JSON
             if (pushByDigest) {
-                const listCmd = yield (0, exec_1.exec)('docker', ['image', 'list', '--digests'], { silent: true });
-                console.log(`listCmd: ${listCmd.stdout}`);
-                console.log(`listCmd: ${listCmd.stderr}`);
-                const inspectCmd = yield (0, exec_1.exec)('docker', ['image', 'inspect', tags[0]], { silent: true });
-                console.log(`tags: ${tags}`);
-                console.log(`inspectCmd: ${inspectCmd.stdout}`);
-                console.log(`inspectCmd: ${inspectCmd.stderr}`);
                 const digestsObj = {};
                 for (const tag of tags) {
                     const digest = yield getImageDigest(tag);
+                    console.log(`tag: ${tag}`);
+                    console.log(`digest: ${digest}`);
                     if (digest !== null) {
                         digestsObj[tag] = {
                             [platforms[0]]: digest
