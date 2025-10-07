@@ -2144,20 +2144,26 @@ function getImageDigest(imageName) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log(`Getting image digest for ${imageName}`);
         try {
-            const inspectCmd = yield (0, exec_1.exec)('docker', ['buildx', 'imagetools', 'inspect', '--raw', imageName], { silent: false });
-            console.log(`inspectCmd: ${inspectCmd.stdout}`);
-            console.log(`inspectCmd: ${inspectCmd.stderr}`);
+            const inspectCmd = yield (0, exec_1.exec)('docker', ['buildx', 'imagetools', 'inspect', '--raw', imageName], { silent: true });
             if (inspectCmd.exitCode === 0) {
                 const output = JSON.parse(inspectCmd.stdout.trim());
+                // for simple images
                 if (output.digest) {
                     return output.digest;
+                }
+                // For manifests (i.e. for attestation)
+                else if (output.manifests) {
+                    const manifest = output.manifests.find((m) => m.mediaType === 'application/vnd.oci.image.manifest.v1+json');
+                    if (manifest === null || manifest === void 0 ? void 0 : manifest.digest) {
+                        return manifest.digest;
+                    }
                 }
             }
         }
         catch (error) {
-            core.warning(`Failed to get registry image digest for ${imageName}: ${error}`);
+            core.error(`Failed to get registry image digest for ${imageName}: ${error}`);
         }
-        return null;
+        throw new Error(`Failed to get registry image digest for ${imageName}`);
     });
 }
 function runMain() {
@@ -2235,19 +2241,10 @@ function runMain() {
             }
             // Output the digests as a JSON
             if (pushByDigest) {
-                const digestsObj = {};
-                for (const tag of tags) {
-                    const digest = yield getImageDigest(tag);
-                    if (digest !== null) {
-                        digestsObj[tag] = {
-                            [platforms[0]]: digest
-                        };
-                    }
-                }
-                if (Object.keys(digestsObj).length > 0) {
-                    const digestsJson = JSON.stringify(digestsObj);
-                    core.info(`Image digests: ${digestsJson}`);
-                    core.setOutput('imageDigests', digestsJson);
+                const digest = yield getImageDigest(tags[0]);
+                if (digest !== null) {
+                    core.info(`Image digests: ${digest}`);
+                    core.setOutput('imageDigests', digest);
                 }
             }
         }
