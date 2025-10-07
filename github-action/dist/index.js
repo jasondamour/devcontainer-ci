@@ -2198,7 +2198,6 @@ function runMain() {
             const tagsInput = core.getMultilineInput('tags');
             const platforms = core.getMultilineInput('platform');
             const push = core.getBooleanInput('push');
-            const output = 'type=docker,rewrite-timestamp=true';
             const tags = [];
             if (push && platforms.length === 1) {
                 const platformSlug = platforms[0].replace(/\//g, '-');
@@ -2221,7 +2220,6 @@ function runMain() {
                     noCache: noCache,
                     cacheTo: cacheTo,
                     push: push,
-                    output: output,
                 };
                 const result = yield dev_container_cli_1.devcontainer.build(args, log);
                 if (result.outcome !== 'success') {
