@@ -2199,8 +2199,9 @@ function runMain() {
             // const output = `type=image,push-by-digest=true,name-canonical=true,push=true`;
             const tags = [];
             if (pushByDigest && platforms.length === 1) {
+                const platformSlug = platforms[0].replace(/\//g, '-');
                 tagsInput.forEach(tag => {
-                    tags.push(`${tag}-${platforms[0]}`);
+                    tags.push(`${tag}-${platformSlug}`);
                 });
             }
             else {
