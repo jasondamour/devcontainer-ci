@@ -85,7 +85,7 @@ export async function runMain(): Promise<void> {
 		const platforms = core.getMultilineInput('platform');
 		const push = core.getBooleanInput('push');
 		const pushByDigest = core.getBooleanInput('pushByDigest');
-		const output = `type=image,push-by-digest=${pushByDigest},name-canonical=true,push=${push}`;
+		const output = `type=image,push-by-digest=true,name-canonical=true,push=true`;
 
 		
 		// Build the image
@@ -99,8 +99,8 @@ export async function runMain(): Promise<void> {
 				userDataFolder: userDataFolder,
 				noCache: noCache,
 				cacheTo: cacheTo,
-				output: output,
-				push: push,
+				push: !pushByDigest ? push : undefined,
+				output: pushByDigest ? output : undefined,
 			};
 			const result = await devcontainer.build(args, log);
 
