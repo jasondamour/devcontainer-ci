@@ -2129,7 +2129,6 @@ const core = __importStar(__nccwpck_require__(7484));
 const path_1 = __importDefault(__nccwpck_require__(6928));
 const exec_1 = __nccwpck_require__(1031);
 const dev_container_cli_1 = __nccwpck_require__(9467);
-const skopeo_1 = __nccwpck_require__(3967);
 const docker_1 = __nccwpck_require__(2306);
 // Helper function to convert empty string to undefined
 function emptyStringAsUndefined(value) {
@@ -2177,11 +2176,6 @@ function runMain() {
                 core.setFailed('docker buildx not available: add a step to set up with docker/setup-buildx-action - see https://github.com/devcontainers/ci/blob/main/docs/github-action.md');
                 return;
             }
-            const skopeoInstalled = yield (0, skopeo_1.isSkopeoInstalled)();
-            if (!skopeoInstalled) {
-                core.setFailed('skopeo not available: add a step to set up with skopeo/install-action - see https://github.com/devcontainers/ci/blob/main/docs/github-action.md');
-                return;
-            }
             const devContainerCliInstalled = yield dev_container_cli_1.devcontainer.isCliInstalled(exec_1.exec);
             if (!devContainerCliInstalled) {
                 const success = yield dev_container_cli_1.devcontainer.installCli(exec_1.exec);
@@ -2204,10 +2198,8 @@ function runMain() {
             const tagsInput = core.getMultilineInput('tags');
             const platforms = core.getMultilineInput('platform');
             const push = core.getBooleanInput('push');
-            const pushByDigest = core.getBooleanInput('pushByDigest');
-            // const output = `type=image,push-by-digest=true,name-canonical=true,push=true`;
             const tags = [];
-            if (pushByDigest && platforms.length === 1) {
+            if (push && platforms.length === 1) {
                 const platformSlug = platforms[0].replace(/\//g, '-');
                 tagsInput.forEach(tag => {
                     tags.push(`${tag}-${platformSlug}`);
@@ -2240,94 +2232,16 @@ function runMain() {
                 return;
             }
             // Output the digests as a JSON
-            if (pushByDigest) {
+            if (push && platforms.length === 1) {
                 const digest = yield getImageDigest(tags[0]);
                 if (digest !== null) {
-                    core.info(`Image digests: ${digest}`);
-                    core.setOutput('imageDigests', digest);
+                    core.info(`Image digest: ${digest}`);
+                    core.setOutput('digest', digest);
                 }
             }
         }
         catch (error) {
             core.setFailed(error.message);
-        }
-    });
-}
-
-
-/***/ }),
-
-/***/ 3967:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.isSkopeoInstalled = isSkopeoInstalled;
-exports.copyImage = copyImage;
-const core = __importStar(__nccwpck_require__(7484));
-const skopeo = __importStar(__nccwpck_require__(6768));
-const exec_1 = __nccwpck_require__(1031);
-function isSkopeoInstalled() {
-    return __awaiter(this, void 0, void 0, function* () {
-        return yield skopeo.isSkopeoInstalled(exec_1.exec);
-    });
-}
-function copyImage(all, source, dest) {
-    return __awaiter(this, void 0, void 0, function* () {
-        core.startGroup('📌 Copying image...');
-        try {
-            yield skopeo.copyImage(exec_1.exec, all, source, dest);
-            return true;
-        }
-        catch (error) {
-            core.setFailed(error);
-            return false;
-        }
-        finally {
-            core.endGroup();
         }
     });
 }
@@ -28719,46 +28633,6 @@ function getAbsolutePath(inputPath, referencePath) {
         return inputPath;
     }
     return path_1.default.join(referencePath, inputPath);
-}
-
-
-/***/ }),
-
-/***/ 6768:
-/***/ (function(__unused_webpack_module, exports) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.isSkopeoInstalled = isSkopeoInstalled;
-exports.copyImage = copyImage;
-function isSkopeoInstalled(exec) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const { exitCode } = yield exec('skopeo', ['--help'], { silent: true });
-        return exitCode === 0;
-    });
-}
-function copyImage(exec, all, source, dest) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const args = ['copy'];
-        if (all) {
-            args.push('--all');
-        }
-        args.push(source, dest);
-        const { exitCode } = yield exec('skopeo', args, {});
-        if (exitCode !== 0) {
-            throw new Error(`skopeo copy failed with ${exitCode}`);
-        }
-    });
 }
 
 
