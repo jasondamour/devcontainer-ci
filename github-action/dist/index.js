@@ -2142,8 +2142,11 @@ function emptyStringAsUndefined(value) {
 // Does not work for manifests
 function getImageDigest(imageName) {
     return __awaiter(this, void 0, void 0, function* () {
+        console.log(`Getting image digest for ${imageName}`);
         try {
-            const inspectCmd = yield (0, exec_1.exec)('docker', ['buildx', 'imagetools', 'inspect', '--raw', imageName], { silent: true });
+            const inspectCmd = yield (0, exec_1.exec)('docker', ['buildx', 'imagetools', 'inspect', '--raw', imageName], { silent: false });
+            console.log(`inspectCmd: ${inspectCmd.stdout}`);
+            console.log(`inspectCmd: ${inspectCmd.stderr}`);
             if (inspectCmd.exitCode === 0) {
                 const output = JSON.parse(inspectCmd.stdout.trim());
                 if (output.digest) {
@@ -2235,8 +2238,6 @@ function runMain() {
                 const digestsObj = {};
                 for (const tag of tags) {
                     const digest = yield getImageDigest(tag);
-                    console.log(`tag: ${tag}`);
-                    console.log(`digest: ${digest}`);
                     if (digest !== null) {
                         digestsObj[tag] = {
                             [platforms[0]]: digest
