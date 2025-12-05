@@ -166,6 +166,7 @@ export interface DevContainerCliBuildArgs {
   noCache?: boolean,
   cacheTo?: string[],
   push?: boolean,
+  labels?: string[],
 }
 
 async function devContainerBuild(
@@ -183,6 +184,11 @@ async function devContainerBuild(
   if (args.imageNames) {
     args.imageNames.forEach(iName =>
       commandArgs.push('--image-name', iName),
+    );
+  }
+  if (args.labels) {
+    args.labels.forEach(label =>
+      commandArgs.push('--label', label),
     );
   }
   if (args.platforms) {

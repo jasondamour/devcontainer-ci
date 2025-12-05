@@ -87,6 +87,7 @@ export async function runMain(): Promise<void> {
 		const configFile = relativeConfigFile && path.resolve(checkoutPath, relativeConfigFile);
 		const tagsInput = core.getMultilineInput('tags');
 		const platforms = core.getMultilineInput('platform');
+		const labels = core.getMultilineInput('labels');
 		const push = core.getBooleanInput('push');
 
 		const tags: string[] = [];
@@ -111,6 +112,7 @@ export async function runMain(): Promise<void> {
 				noCache: noCache,
 				cacheTo: cacheTo,
 				push: push,
+				labels: labels,
 			};
 			const result = await devcontainer.build(args, log);
 

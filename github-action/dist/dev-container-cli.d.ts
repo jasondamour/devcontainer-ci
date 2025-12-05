@@ -24,6 +24,7 @@ export interface DevContainerCliBuildArgs {
     noCache?: boolean;
     cacheTo?: string[];
     push?: boolean;
+    labels?: string[];
 }
 declare function devContainerBuild(args: DevContainerCliBuildArgs, log: (data: string) => void): Promise<DevContainerCliBuildResult | DevContainerCliError>;
 export interface DevContainerCliUpResult extends DevContainerCliSuccessResult {

@@ -2197,6 +2197,7 @@ function runMain() {
             const configFile = relativeConfigFile && path_1.default.resolve(checkoutPath, relativeConfigFile);
             const tagsInput = core.getMultilineInput('tags');
             const platforms = core.getMultilineInput('platform');
+            const labels = core.getMultilineInput('labels');
             const push = core.getBooleanInput('push');
             const tags = [];
             if (push && platforms.length === 1) {
@@ -2220,6 +2221,7 @@ function runMain() {
                     noCache: noCache,
                     cacheTo: cacheTo,
                     push: push,
+                    labels: labels,
                 };
                 const result = yield dev_container_cli_1.devcontainer.build(args, log);
                 if (result.outcome !== 'success') {
@@ -28134,6 +28136,9 @@ function devContainerBuild(args, log) {
         }
         if (args.imageNames) {
             args.imageNames.forEach(iName => commandArgs.push('--image-name', iName));
+        }
+        if (args.labels) {
+            args.labels.forEach(label => commandArgs.push('--label', label));
         }
         if (args.platforms) {
             args.platforms.forEach(platform => commandArgs.push('--platform', platform));
