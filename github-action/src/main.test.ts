@@ -319,6 +319,77 @@ describe('DevContainer CI GitHub Action', () => {
     });
   });
 
+  describe('Cache-from enhancement', () => {
+    it('should add first tag to cacheFrom when no :latest tag is present', async () => {
+      // Setup - tags without :latest
+      mockCore.getMultilineInput.mockImplementation((name: string) => {
+        if (name === 'tags') return ['myregistry/myimage:pr-123', 'myregistry/myimage:sha-abc'];
+        if (name === 'platform') return [];
+        if (name === 'cacheFrom') return [];
+        if (name === 'cacheTo') return [];
+        if (name === 'labels') return [];
+        return [];
+      });
+
+      // Execute
+      await runMain();
+
+      // Verify - first tag should be added to additionalCacheFroms
+      expect(mockDevcontainer.build).toHaveBeenCalledWith(
+        expect.objectContaining({
+          additionalCacheFroms: ['myregistry/myimage:pr-123'],
+        }),
+        expect.any(Function)
+      );
+    });
+
+    it('should not modify cacheFrom when :latest tag is present', async () => {
+      // Setup - tags with :latest
+      mockCore.getMultilineInput.mockImplementation((name: string) => {
+        if (name === 'tags') return ['myregistry/myimage:latest', 'myregistry/myimage:v1.0'];
+        if (name === 'platform') return [];
+        if (name === 'cacheFrom') return [];
+        if (name === 'cacheTo') return [];
+        if (name === 'labels') return [];
+        return [];
+      });
+
+      // Execute
+      await runMain();
+
+      // Verify - additionalCacheFroms should be empty (no first tag added)
+      expect(mockDevcontainer.build).toHaveBeenCalledWith(
+        expect.objectContaining({
+          additionalCacheFroms: [],
+        }),
+        expect.any(Function)
+      );
+    });
+
+    it('should preserve user-provided cacheFrom and add first tag when no :latest', async () => {
+      // Setup - tags without :latest, with user-provided cacheFrom
+      mockCore.getMultilineInput.mockImplementation((name: string) => {
+        if (name === 'tags') return ['myregistry/myimage:pr-456', 'myregistry/myimage:sha-def'];
+        if (name === 'platform') return [];
+        if (name === 'cacheFrom') return ['some-other-cache:image'];
+        if (name === 'cacheTo') return [];
+        if (name === 'labels') return [];
+        return [];
+      });
+
+      // Execute
+      await runMain();
+
+      // Verify - user cacheFrom should be preserved and first tag appended
+      expect(mockDevcontainer.build).toHaveBeenCalledWith(
+        expect.objectContaining({
+          additionalCacheFroms: ['some-other-cache:image', 'myregistry/myimage:pr-456'],
+        }),
+        expect.any(Function)
+      );
+    });
+  });
+
   describe('Error handling', () => {
     it('should fail when docker buildx is not installed', async () => {
       mockIsDockerBuildXInstalled.mockResolvedValue(false);

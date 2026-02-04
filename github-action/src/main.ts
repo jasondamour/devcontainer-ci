@@ -90,6 +90,15 @@ export async function runMain(): Promise<void> {
 		const labels = core.getMultilineInput('labels');
 		const push = core.getBooleanInput('push');
 
+		// Enhance cache-from: if no :latest tag is present in input tags,
+		// add the first tag as an additional cache source.
+		// This helps PR builds reuse cache from previous builds of the same PR,
+		// while the devcontainer CLI automatically adds :latest as the primary cache source.
+		const hasLatestTag = tagsInput.some(tag => tag.endsWith(':latest'));
+		if (!hasLatestTag && tagsInput.length > 0) {
+			cacheFrom.push(tagsInput[0]);
+		}
+
 		const tags: string[] = [];
 		if (push && platforms.length === 1) {
 			const platformSlug = platforms[0].replace(/\//g, '-');
